@@ -1,0 +1,117 @@
+# NewsFlow Application
+
+## Overview
+
+NewsFlow is a full-stack news aggregation and reading platform built with React, Express.js, and PostgreSQL. The application provides users with AI-enhanced news articles from various sources, personalized reading experiences, and comprehensive reading tracking features.
+
+## System Architecture
+
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript
+- **Styling**: Tailwind CSS with shadcn/ui component library
+- **State Management**: TanStack Query for server state management
+- **Routing**: Wouter for lightweight client-side routing
+- **Build Tool**: Vite for fast development and optimized builds
+
+### Backend Architecture
+- **Runtime**: Node.js with Express.js server
+- **Language**: TypeScript with ES modules
+- **API Pattern**: RESTful API design
+- **Authentication**: Replit OAuth integration with session-based auth
+- **Database ORM**: Drizzle ORM for type-safe database operations
+
+### Database Design
+- **Database**: PostgreSQL (configured for Neon serverless)
+- **Migration Tool**: Drizzle Kit for schema management
+- **Connection**: Connection pooling with @neondatabase/serverless
+- **Session Storage**: PostgreSQL-backed session store using connect-pg-simple
+
+## Key Components
+
+### Authentication System
+- **Provider**: Replit OAuth integration
+- **Session Management**: PostgreSQL-backed sessions with 7-day expiration
+- **User Storage**: Comprehensive user profiles with preferences
+- **Security**: HTTP-only cookies with secure settings
+
+### News Aggregation Service
+- **RSS Parser**: Multiple news sources including TechCrunch, Reuters, AI News
+- **Content Enhancement**: OpenAI GPT-4o integration for article summaries and analysis
+- **Source Management**: Configurable news sources with category filtering
+- **Content Processing**: Automatic article enrichment with key points and sentiment analysis
+
+### User Experience Features
+- **Reading Tracking**: Daily reading goals and progress monitoring
+- **Bookmarking System**: Save articles for later reading
+- **Note Taking**: User notes attached to specific articles
+- **Personalization**: Category preferences and source filtering
+- **Responsive Design**: Mobile-first design with adaptive layouts
+
+### Data Models
+- **Users**: Authentication and profile information
+- **Articles**: News content with metadata and AI enhancements
+- **User Preferences**: Reading goals, category filters, source preferences
+- **User Articles**: Bookmarks and reading status tracking
+- **Notes**: User-generated notes linked to articles
+- **Reading History**: Comprehensive reading analytics
+
+## Data Flow
+
+### News Ingestion
+1. RSS feeds are parsed from configured sources
+2. Articles are processed and stored in the database
+3. AI service enhances articles with summaries and analysis
+4. Content is categorized and made available through API
+
+### User Interaction
+1. Users authenticate via Replit OAuth
+2. Personalized article feeds are generated based on preferences
+3. Reading actions (bookmarks, notes) are tracked and stored
+4. Progress analytics are calculated and displayed
+
+### Real-time Features
+- Live reading progress tracking
+- Instant bookmark and note synchronization
+- Dynamic content filtering based on user preferences
+
+## External Dependencies
+
+### Core Dependencies
+- **Authentication**: Replit OAuth with openid-client
+- **Database**: Neon PostgreSQL with Drizzle ORM
+- **AI Integration**: OpenAI API for content enhancement
+- **RSS Processing**: rss-parser for news feed ingestion
+- **UI Components**: Radix UI primitives with shadcn/ui
+
+### Development Tools
+- **Build System**: Vite with React plugin and runtime error overlay
+- **Type Safety**: TypeScript with strict configuration
+- **Code Quality**: ESLint and Prettier (implied by shadcn/ui setup)
+- **Development Server**: Express with Vite middleware in development
+
+## Deployment Strategy
+
+### Build Process
+- **Frontend**: Vite builds optimized React application to `dist/public`
+- **Backend**: ESBuild bundles Node.js server to `dist/index.js`
+- **Assets**: Static files served from built frontend directory
+
+### Environment Configuration
+- **Development**: Hot module replacement with Vite dev server
+- **Production**: Node.js server serves built assets and API routes
+- **Database**: Environment-based PostgreSQL connection strings
+- **Secrets**: OpenAI API keys and session secrets via environment variables
+
+### Replit Integration
+- **Modules**: Node.js 20, web server, and PostgreSQL 16
+- **Port Configuration**: Internal port 5000 mapped to external port 80
+- **Auto-scaling**: Configured for Replit's autoscale deployment target
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## Changelog
+
+Changelog:
+- June 15, 2025. Initial setup
