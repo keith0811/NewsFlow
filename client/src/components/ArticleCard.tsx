@@ -84,100 +84,102 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
 
   const imageHeight = featured ? "h-48 sm:h-64" : "h-40";
 
+  const handleArticleClick = () => {
+    window.open(article.url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <Link href={`/article/${article.id}`}>
-      <Card className={cardClass}>
-        {/* Article Image */}
-        {article.imageUrl && (
-          <img 
-            src={article.imageUrl} 
-            alt={article.title}
-            className={cn("w-full object-cover", imageHeight)}
-          />
-        )}
+    <Card className={cardClass} onClick={handleArticleClick} style={{ cursor: 'pointer' }}>
+      {/* Article Image */}
+      {article.imageUrl && (
+        <img 
+          src={article.imageUrl} 
+          alt={article.title}
+          className={cn("w-full object-cover", imageHeight)}
+        />
+      )}
+      
+      <CardContent className="p-5">
+        {/* Article Meta */}
+        <div className="flex items-center space-x-2 mb-3">
+          {featured && (
+            <Badge className="bg-primary text-white">Featured</Badge>
+          )}
+          <span className="text-gray-500 text-sm">
+            {article.source?.displayName || 'Unknown Source'}
+          </span>
+          <span className="text-gray-500 text-sm">•</span>
+          <span className="text-gray-500 text-sm">
+            {new Date(article.publishedAt).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric'
+            })}
+          </span>
+        </div>
         
-        <CardContent className="p-5">
-          {/* Article Meta */}
-          <div className="flex items-center space-x-2 mb-3">
-            {featured && (
-              <Badge className="bg-primary text-white">Featured</Badge>
-            )}
-            <span className="text-gray-500 text-sm">
-              {article.source?.displayName || 'Unknown Source'}
-            </span>
-            <span className="text-gray-500 text-sm">•</span>
-            <span className="text-gray-500 text-sm">
-              {new Date(article.publishedAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-              })}
-            </span>
-          </div>
-          
-          {/* Title */}
-          <h3 className={cn(
-            "font-semibold text-gray-900 mb-2 leading-tight",
-            featured ? "text-2xl mb-3" : "text-lg"
-          )}>
-            {article.title}
-          </h3>
-          
-          {/* Summary */}
-          <p className={cn(
-            "text-gray-600 leading-relaxed mb-4",
-            featured ? "text-base" : "text-sm"
-          )}>
-            {article.summary || article.aiSummary}
-          </p>
-          
-          {/* Actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  bookmarkMutation.mutate();
-                }}
-                disabled={bookmarkMutation.isPending}
-                className="text-gray-500 hover:text-primary"
-              >
-                <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-current")} />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-500 hover:text-primary"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  // TODO: Open notes modal
-                }}
-              >
-                <StickyNote className="h-4 w-4" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleShare}
-                className="text-gray-500 hover:text-primary"
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-            </div>
+        {/* Title */}
+        <h3 className={cn(
+          "font-semibold text-gray-900 mb-2 leading-tight",
+          featured ? "text-2xl mb-3" : "text-lg"
+        )}>
+          {article.title}
+        </h3>
+        
+        {/* Summary */}
+        <p className={cn(
+          "text-gray-600 leading-relaxed mb-4",
+          featured ? "text-base" : "text-sm"
+        )}>
+          {article.summary || article.aiSummary}
+        </p>
+        
+        {/* Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                bookmarkMutation.mutate();
+              }}
+              disabled={bookmarkMutation.isPending}
+              className="text-gray-500 hover:text-primary"
+            >
+              <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-current")} />
+            </Button>
             
-            <div className="flex items-center space-x-2 text-xs text-gray-500">
-              <Clock className="h-3 w-3" />
-              <span>{article.readingTime || 5} min read</span>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-500 hover:text-primary"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // TODO: Open notes modal
+              }}
+            >
+              <StickyNote className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleShare}
+              className="text-gray-500 hover:text-primary"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-    </Link>
+          
+          <div className="flex items-center space-x-2 text-xs text-gray-500">
+            <Clock className="h-3 w-3" />
+            <span>{article.readingTime || 5} min read</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
