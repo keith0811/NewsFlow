@@ -93,7 +93,7 @@ export default function Sidebar({ stats, sources }: SidebarProps) {
             <div className="text-left">
               <div className="font-medium">My Notes</div>
               <div className="text-sm text-gray-500">
-                {userNotes?.length || 0} notes
+                {(userNotes as any)?.length || 0} notes
               </div>
             </div>
           </Button>

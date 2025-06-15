@@ -215,6 +215,19 @@ export default function SourceManagementModal({ isOpen, onClose }: SourceManagem
                           <Badge className={category.color}>
                             {category.name}
                           </Badge>
+                          {(category as any).isCustom && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveCustomCategory(category.id);
+                              }}
+                              className="text-gray-400 hover:text-red-500 p-1"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
                         <Switch
                           checked={isEnabled}
@@ -226,6 +239,31 @@ export default function SourceManagementModal({ isOpen, onClose }: SourceManagem
                   </Card>
                 );
               })}
+            </div>
+            
+            {/* Add Custom Category */}
+            <div className="mt-4 pt-4 border-t">
+              <Label className="text-sm font-medium">Add Custom Category</Label>
+              <div className="flex space-x-2 mt-2">
+                <Input
+                  placeholder="Enter category name..."
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddCategory();
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleAddCategory}
+                  disabled={!newCategory.trim() || updatePreferencesMutation.isPending}
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
