@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { cn } from "@/lib/utils";
+import NoteModal from "@/components/NoteModal";
 
 interface ArticleCardProps {
   article: any;
@@ -16,7 +17,8 @@ interface ArticleCardProps {
 
 export default function ArticleCard({ article, featured = false }: ArticleCardProps) {
   const { toast } = useToast();
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(article.userArticle?.isBookmarked || false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
 
   const bookmarkMutation = useMutation({
     mutationFn: async () => {
@@ -188,7 +190,7 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // TODO: Open notes modal
+                setShowNotesModal(true);
               }}
             >
               <StickyNote className="h-4 w-4" />
