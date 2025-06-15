@@ -16,16 +16,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Initialize news sources and fetch initial articles
-  await newsService.initializeDefaultSources();
+  // Initialize news sources and fetch initial articles (non-blocking)
+  newsService.initializeDefaultSources().catch(console.error);
   
-  // Start daily article refresh schedule
-  await newsService.scheduleRefresh();
-  
-  // Fetch initial articles in the background
-  newsService.refreshAllArticles().catch(error => {
-    console.log('Initial article fetch failed:', error.message);
-  });
+  // Start background operations after server is ready
+  setTimeout(async () => {
+    try {
+      await newsService.scheduleRefresh();
+      newsService.refreshAllArticles().catch(error => {
+        console.log('Initial article fetch failed:', error.message);
+      });
+    } catch (error) {
+      console.log('Background initialization failed:', error);
+    }
+  }, 1000);
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {

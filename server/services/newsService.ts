@@ -116,11 +116,18 @@ class NewsService {
           isProcessed: false,
         };
 
-        await storage.createArticle(article);
+        try {
+          await storage.createArticle(article);
+        } catch (error: any) {
+          // Skip duplicate articles (constraint violation)
+          if (error.code !== '23505') {
+            throw error;
+          }
+        }
       }
     } catch (error) {
-      console.error(`Error parsing RSS for ${source.displayName}:`, error);
-      throw error;
+      console.error(`Failed to refresh ${source.displayName}:`, error);
+      // Don't throw error to prevent server crash
     }
   }
 
