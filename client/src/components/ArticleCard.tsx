@@ -212,6 +212,13 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
           </div>
         </div>
       </CardContent>
+      
+      <NoteModal
+        isOpen={showNotesModal}
+        onClose={() => setShowNotesModal(false)}
+        articleId={article.id}
+        articleTitle={article.title}
+      />
     </Card>
   );
 }
