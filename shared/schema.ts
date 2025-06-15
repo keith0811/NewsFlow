@@ -9,6 +9,7 @@ import {
   integer,
   boolean,
   real,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -87,7 +88,9 @@ export const userArticles = pgTable("user_articles", {
   readingProgress: real("reading_progress").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  uniqueUserArticle: unique().on(table.userId, table.articleId),
+}));
 
 // User notes on articles
 export const userNotes = pgTable("user_notes", {

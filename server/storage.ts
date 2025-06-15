@@ -130,8 +130,33 @@ export class DatabaseStorage implements IStorage {
   // Articles
   async getArticles(limit = 20, offset = 0, category?: string, sourceIds?: number[]): Promise<Article[]> {
     let query = db
-      .select()
+      .select({
+        id: articles.id,
+        title: articles.title,
+        summary: articles.summary,
+        content: articles.content,
+        url: articles.url,
+        imageUrl: articles.imageUrl,
+        sourceId: articles.sourceId,
+        category: articles.category,
+        publishedAt: articles.publishedAt,
+        readingTime: articles.readingTime,
+        isProcessed: articles.isProcessed,
+        createdAt: articles.createdAt,
+        aiSummary: articles.aiSummary,
+        aiEnhancement: articles.aiEnhancement,
+        aiKeyPoints: articles.aiKeyPoints,
+        aiSentiment: articles.aiSentiment,
+        source: {
+          id: newsSources.id,
+          name: newsSources.name,
+          displayName: newsSources.displayName,
+          url: newsSources.url,
+          category: newsSources.category,
+        }
+      })
       .from(articles)
+      .leftJoin(newsSources, eq(articles.sourceId, newsSources.id))
       .orderBy(desc(articles.publishedAt))
       .limit(limit)
       .offset(offset);
