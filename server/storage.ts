@@ -128,33 +128,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Articles
-  async getArticles(limit = 20, offset = 0, category?: string, sourceIds?: number[]): Promise<Article[]> {
+  async getArticles(limit = 20, offset = 0, category?: string, sourceIds?: number[]): Promise<any[]> {
     let query = db
-      .select({
-        id: articles.id,
-        title: articles.title,
-        summary: articles.summary,
-        content: articles.content,
-        url: articles.url,
-        imageUrl: articles.imageUrl,
-        sourceId: articles.sourceId,
-        category: articles.category,
-        publishedAt: articles.publishedAt,
-        readingTime: articles.readingTime,
-        isProcessed: articles.isProcessed,
-        createdAt: articles.createdAt,
-        aiSummary: articles.aiSummary,
-        aiEnhancement: articles.aiEnhancement,
-        aiKeyPoints: articles.aiKeyPoints,
-        aiSentiment: articles.aiSentiment,
-        source: {
-          id: newsSources.id,
-          name: newsSources.name,
-          displayName: newsSources.displayName,
-          url: newsSources.url,
-          category: newsSources.category,
-        }
-      })
+      .select()
       .from(articles)
       .leftJoin(newsSources, eq(articles.sourceId, newsSources.id))
       .orderBy(desc(articles.publishedAt))
@@ -175,7 +151,13 @@ export class DatabaseStorage implements IStorage {
       query = query.where(and(...conditions)) as any;
     }
 
-    return await query;
+    const results = await query;
+    
+    // Transform the results to include source information
+    return results.map((row: any) => ({
+      ...row.articles,
+      source: row.news_sources || null
+    }));
   }
 
   async getArticleById(id: number): Promise<Article | undefined> {
