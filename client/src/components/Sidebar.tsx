@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Bookmark, StickyNote, List } from "lucide-react";
+import SourceManagementModal from "@/components/SourceManagementModal";
 
 interface SidebarProps {
   stats?: any;
@@ -10,6 +12,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ stats, sources }: SidebarProps) {
+  const [showSourceModal, setShowSourceModal] = useState(false);
+  
   const { data: bookmarkedArticles } = useQuery({
     queryKey: ['/api/user/articles/bookmarked'],
     retry: false,
@@ -133,14 +137,18 @@ export default function Sidebar({ stats, sources }: SidebarProps) {
           <Button 
             variant="ghost" 
             className="w-full mt-4 text-primary hover:text-blue-700"
-            onClick={() => {
-              // TODO: Open source management modal
-            }}
+            onClick={() => setShowSourceModal(true)}
           >
             Manage Sources
           </Button>
         </CardContent>
       </Card>
+
+      {/* Source Management Modal */}
+      <SourceManagementModal
+        isOpen={showSourceModal}
+        onClose={() => setShowSourceModal(false)}
+      />
     </div>
   );
 }

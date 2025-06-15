@@ -18,7 +18,12 @@ class NewsService {
   constructor() {
     this.parser = new Parser({
       customFields: {
-        item: ['content:encoded', 'content']
+        item: [
+          'content:encoded',
+          'content',
+          'description',
+          'summary'
+        ]
       }
     });
   }
@@ -96,15 +101,18 @@ class NewsService {
         
         if (exists) continue;
 
+        // Get the full content - prioritize content:encoded, then content, then contentSnippet
+        const fullContent = (item as any)['content:encoded'] || item.content || item.contentSnippet || (item as any).summary || '';
+        
         const article: InsertArticle = {
           title: item.title,
-          content: item.content || item.contentSnippet || '',
-          summary: this.extractSummary(item.contentSnippet || item.content || ''),
+          content: fullContent,
+          summary: this.extractSummary(fullContent),
           url: item.link,
           sourceId: source.id,
           category: source.category,
           publishedAt: item.isoDate ? new Date(item.isoDate) : new Date(),
-          readingTime: this.estimateReadingTime(item.content || item.contentSnippet || ''),
+          readingTime: this.estimateReadingTime(fullContent),
           isProcessed: false,
         };
 
