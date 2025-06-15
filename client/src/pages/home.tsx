@@ -18,7 +18,23 @@ export default function Home() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const { data: articles, isLoading, error, refetch } = useQuery({
-    queryKey: ['/api/articles', { page, category: selectedCategory }],
+    queryKey: ['/api/articles', page, selectedCategory],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '20'
+      });
+      
+      if (selectedCategory !== 'all') {
+        params.append('category', selectedCategory);
+      }
+      
+      const response = await fetch(`/api/articles?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch articles');
+      }
+      return response.json();
+    },
     retry: false,
   });
 
