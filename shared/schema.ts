@@ -46,7 +46,9 @@ export const userPreferences = pgTable("user_preferences", {
   dailyReadingGoal: integer("daily_reading_goal").default(15),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  uniqueUserId: unique().on(table.userId),
+}));
 
 // News sources
 export const newsSources = pgTable("news_sources", {
