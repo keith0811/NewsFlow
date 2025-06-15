@@ -113,15 +113,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- June 15, 2025: Complete NewsFlow application built and deployed
-  - Implemented news aggregation from TechCrunch, AI News, and Reuters sources
-  - Added user authentication with Replit OAuth integration
-  - Created comprehensive database schema for articles, notes, bookmarks, and reading history
-  - Built mobile-friendly React frontend with article cards and reading progress tracking
-  - Integrated OpenAI API for article summaries and AI-enhanced content analysis
-  - Added note-taking functionality with full CRUD operations
-  - Implemented reading analytics and progress dashboard
-  - Set up automatic daily article refresh at 12am
+- June 15, 2025: NewsFlow application completed and ready for production deployment
+  - Replaced failing Reuters feeds with working Business Insider, CNBC Business, and Yahoo Finance sources
+  - Fixed Business and Markets categories - now populated with real articles
+  - Removed search functionality per user request for cleaner interface
+  - Fixed notification icon with working dropdown panel
+  - Verified all article categories working: Technology, AI, Business, Markets
+  - Successfully built production assets with Vite and esbuild
+  - Application ready for Replit deployment with all features functional
 
 ## Changelog
 
