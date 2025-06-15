@@ -15,17 +15,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Newspaper, Search, Bell, User, Settings, LogOut } from "lucide-react";
+import { Newspaper, Bell, User, Settings, LogOut } from "lucide-react";
 
 export default function Header() {
   const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implement search functionality
-    console.log("Search query:", searchQuery);
-  };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -43,28 +36,11 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Search Bar (Desktop) */}
-          <div className="hidden md:block flex-1 max-w-lg mx-8">
-            <form onSubmit={handleSearch} className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
-              </div>
-              <Input
-                type="text"
-                className="pl-10"
-                placeholder="Search articles..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </form>
-          </div>
+          {/* Spacer */}
+          <div className="flex-1"></div>
 
           {/* User Actions */}
           <div className="flex items-center space-x-4">
-            {/* Mobile Search Toggle */}
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Search className="h-4 w-4" />
-            </Button>
             
             {/* Notifications */}
             <Popover>
@@ -147,21 +123,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Search Bar */}
-      <div className="md:hidden px-4 pb-4">
-        <form onSubmit={handleSearch} className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400" />
-          </div>
-          <Input
-            type="text"
-            className="pl-10"
-            placeholder="Search articles..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </form>
-      </div>
+
     </header>
   );
 }
