@@ -83,7 +83,38 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
 
   const imageHeight = featured ? "h-48 sm:h-64" : "h-40";
 
+  const trackReadingMutation = useMutation({
+    mutationFn: async () => {
+      // Mark article as read
+      await apiRequest('POST', '/api/user/articles', {
+        articleId: article.id,
+        isRead: true,
+      });
+      
+      // Add to reading history for analytics
+      await apiRequest('POST', '/api/user/reading-history', {
+        articleId: article.id,
+        readingTime: article.readingTime || 5,
+      });
+    },
+    onSuccess: () => {
+      // Invalidate cache to update reading stats
+      queryClient.invalidateQueries({ queryKey: ['/api/user/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/articles'] });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        // User is not logged in, still open the article
+        return;
+      }
+    },
+  });
+
   const handleArticleClick = () => {
+    // Track that the article was read
+    trackReadingMutation.mutate();
+    
+    // Open the original article
     window.open(article.url, '_blank', 'noopener,noreferrer');
   };
 
