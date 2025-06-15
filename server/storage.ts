@@ -153,11 +153,22 @@ export class DatabaseStorage implements IStorage {
 
     const results = await query;
     
+    // Debug logging to see the actual structure
+    console.log('Query results sample:', JSON.stringify(results[0], null, 2));
+    
     // Transform the results to include source information
-    return results.map((row: any) => ({
-      ...row.articles,
-      source: row.news_sources || null
-    }));
+    return results.map((row: any) => {
+      // Handle the joined query structure
+      const article = row.articles || row;
+      const source = row.news_sources || null;
+      
+      console.log('Row structure:', { hasArticles: !!row.articles, hasNewsSources: !!row.news_sources, sourceDisplayName: source?.displayName });
+      
+      return {
+        ...article,
+        source: source
+      };
+    });
   }
 
   async getArticleById(id: number): Promise<Article | undefined> {
