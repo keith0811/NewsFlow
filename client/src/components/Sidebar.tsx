@@ -77,7 +77,7 @@ export default function Sidebar({ stats, sources }: SidebarProps) {
             <div className="text-left">
               <div className="font-medium">Saved Articles</div>
               <div className="text-sm text-gray-500">
-                {bookmarkedArticles?.length || 0} articles
+                {(bookmarkedArticles as any)?.length || 0} articles
               </div>
             </div>
           </Button>

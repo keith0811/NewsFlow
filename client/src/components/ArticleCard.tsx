@@ -107,7 +107,11 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
             </span>
             <span className="text-gray-500 text-sm">•</span>
             <span className="text-gray-500 text-sm">
-              {new Date(article.publishedAt).toLocaleDateString()}
+              {new Date(article.publishedAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
             </span>
           </div>
           

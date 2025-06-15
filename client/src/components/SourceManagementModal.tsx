@@ -98,28 +98,28 @@ export default function SourceManagementModal({ isOpen, onClose }: SourceManagem
   });
 
   const handleSourceToggle = (sourceId: number, enabled: boolean) => {
-    const currentSources = userPreferences?.sources || [];
+    const currentSources = (userPreferences as any)?.sources || [];
     const updatedSources = enabled 
-      ? [...currentSources.filter(id => id !== sourceId.toString()), sourceId.toString()]
-      : currentSources.filter(id => id !== sourceId.toString());
+      ? [...currentSources.filter((id: string) => id !== sourceId.toString()), sourceId.toString()]
+      : currentSources.filter((id: string) => id !== sourceId.toString());
 
     updatePreferencesMutation.mutate({
-      categories: userPreferences?.categories || [],
+      categories: (userPreferences as any)?.categories || [],
       sources: updatedSources,
-      dailyReadingGoal: userPreferences?.dailyReadingGoal || 15,
+      dailyReadingGoal: (userPreferences as any)?.dailyReadingGoal || 15,
     });
   };
 
   const handleCategoryToggle = (category: string, enabled: boolean) => {
-    const currentCategories = userPreferences?.categories || [];
+    const currentCategories = (userPreferences as any)?.categories || [];
     const updatedCategories = enabled
-      ? [...currentCategories.filter(cat => cat !== category), category]
-      : currentCategories.filter(cat => cat !== category);
+      ? [...currentCategories.filter((cat: string) => cat !== category), category]
+      : currentCategories.filter((cat: string) => cat !== category);
 
     updatePreferencesMutation.mutate({
       categories: updatedCategories,
-      sources: userPreferences?.sources || [],
-      dailyReadingGoal: userPreferences?.dailyReadingGoal || 15,
+      sources: (userPreferences as any)?.sources || [],
+      dailyReadingGoal: (userPreferences as any)?.dailyReadingGoal || 15,
     });
   };
 
@@ -165,7 +165,7 @@ export default function SourceManagementModal({ isOpen, onClose }: SourceManagem
             <h3 className="text-lg font-semibold mb-3">Content Categories</h3>
             <div className="grid grid-cols-2 gap-3">
               {categories.map((category) => {
-                const isEnabled = userPreferences?.categories?.includes(category.id) ?? true;
+                const isEnabled = (userPreferences as any)?.categories?.includes(category.id) ?? true;
                 return (
                   <Card key={category.id} className={`cursor-pointer transition-colors ${isEnabled ? 'ring-2 ring-primary' : ''}`}>
                     <CardContent className="p-4">
@@ -192,8 +192,8 @@ export default function SourceManagementModal({ isOpen, onClose }: SourceManagem
           <div>
             <h3 className="text-lg font-semibold mb-3">News Sources</h3>
             <div className="space-y-3">
-              {sources?.map((source: any) => {
-                const isEnabled = userPreferences?.sources?.includes(source.id.toString()) ?? true;
+              {(sources as any)?.map((source: any) => {
+                const isEnabled = (userPreferences as any)?.sources?.includes(source.id.toString()) ?? true;
                 return (
                   <Card key={source.id}>
                     <CardContent className="p-4">
