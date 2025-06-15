@@ -39,6 +39,8 @@ export default function SourceManagementModal({ isOpen, onClose }: SourceManagem
     retry: false,
   });
 
+
+
   const updatePreferencesMutation = useMutation({
     mutationFn: async (preferences: any) => {
       await apiRequest('POST', '/api/user/preferences', preferences);
@@ -144,9 +146,7 @@ export default function SourceManagementModal({ isOpen, onClose }: SourceManagem
   };
 
   const handleRemoveCustomCategory = (categoryId: string) => {
-    setCustomCategories(prev => prev.filter(cat => cat !== categoryId));
-    
-    // Remove from user preferences too
+    // Remove from user preferences
     const currentCategories = (userPreferences as any)?.categories || [];
     updatePreferencesMutation.mutate({
       categories: currentCategories.filter((cat: string) => cat !== categoryId),
@@ -162,7 +162,13 @@ export default function SourceManagementModal({ isOpen, onClose }: SourceManagem
     { id: 'markets', name: 'Markets', color: 'bg-orange-100 text-orange-800' },
   ];
 
-  const customCategoryItems = customCategories.map(catId => ({
+  // Get custom categories directly from user preferences
+  const predefinedCategoryIds = ['technology', 'ai', 'business', 'markets'];
+  const userCustomCategories = (userPreferences as any)?.categories?.filter((cat: string) => 
+    !predefinedCategoryIds.includes(cat.toLowerCase())
+  ) || [];
+  
+  const customCategoryItems = userCustomCategories.map((catId: string) => ({
     id: catId,
     name: catId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
     color: 'bg-gray-100 text-gray-800',
