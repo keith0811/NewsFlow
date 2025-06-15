@@ -2,7 +2,7 @@
 
 ## Overview
 
-NewsFlow is a full-stack news aggregation and reading platform built with React, Express.js, and PostgreSQL. The application provides users with AI-enhanced news articles from various sources, personalized reading experiences, and comprehensive reading tracking features.
+NewsFlow is a complete news aggregation web application that automatically fetches articles from major sources like TechCrunch, AI News, and Reuters. Users can read articles, save bookmarks, take notes, and track their reading progress with AI-enhanced summaries and insights. The app features secure authentication, mobile-friendly design, and personalized content recommendations.
 
 ## System Architecture
 
@@ -111,7 +111,18 @@ NewsFlow is a full-stack news aggregation and reading platform built with React,
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+- June 15, 2025: Complete NewsFlow application built and deployed
+  - Implemented news aggregation from TechCrunch, AI News, and Reuters sources
+  - Added user authentication with Replit OAuth integration
+  - Created comprehensive database schema for articles, notes, bookmarks, and reading history
+  - Built mobile-friendly React frontend with article cards and reading progress tracking
+  - Integrated OpenAI API for article summaries and AI-enhanced content analysis
+  - Added note-taking functionality with full CRUD operations
+  - Implemented reading analytics and progress dashboard
+  - Set up automatic daily article refresh at 12am
+
 ## Changelog
 
-Changelog:
-- June 15, 2025. Initial setup
+- June 15, 2025: Initial NewsFlow setup and full implementation completed
