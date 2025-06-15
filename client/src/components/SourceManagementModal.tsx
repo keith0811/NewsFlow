@@ -13,7 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Settings, Globe, Rss } from "lucide-react";
+import { Settings, Globe, Rss, Plus, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface SourceManagementModalProps {
   isOpen: boolean;
@@ -22,6 +24,8 @@ interface SourceManagementModalProps {
 
 export default function SourceManagementModal({ isOpen, onClose }: SourceManagementModalProps) {
   const { toast } = useToast();
+  const [newCategory, setNewCategory] = useState("");
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
 
   const { data: sources, isLoading } = useQuery({
     queryKey: ['/api/sources'],
@@ -123,12 +127,49 @@ export default function SourceManagementModal({ isOpen, onClose }: SourceManagem
     });
   };
 
-  const categories = [
+  const handleAddCategory = () => {
+    if (newCategory.trim() && !customCategories.includes(newCategory.trim())) {
+      const categoryId = newCategory.trim().toLowerCase().replace(/\s+/g, '_');
+      setCustomCategories(prev => [...prev, categoryId]);
+      setNewCategory("");
+      
+      // Auto-enable the new category
+      const currentCategories = (userPreferences as any)?.categories || [];
+      updatePreferencesMutation.mutate({
+        categories: [...currentCategories, categoryId],
+        sources: (userPreferences as any)?.sources || [],
+        dailyReadingGoal: (userPreferences as any)?.dailyReadingGoal || 15,
+      });
+    }
+  };
+
+  const handleRemoveCustomCategory = (categoryId: string) => {
+    setCustomCategories(prev => prev.filter(cat => cat !== categoryId));
+    
+    // Remove from user preferences too
+    const currentCategories = (userPreferences as any)?.categories || [];
+    updatePreferencesMutation.mutate({
+      categories: currentCategories.filter((cat: string) => cat !== categoryId),
+      sources: (userPreferences as any)?.sources || [],
+      dailyReadingGoal: (userPreferences as any)?.dailyReadingGoal || 15,
+    });
+  };
+
+  const predefinedCategories = [
     { id: 'technology', name: 'Technology', color: 'bg-blue-100 text-blue-800' },
     { id: 'ai', name: 'AI & Machine Learning', color: 'bg-purple-100 text-purple-800' },
     { id: 'business', name: 'Business', color: 'bg-green-100 text-green-800' },
     { id: 'markets', name: 'Markets', color: 'bg-orange-100 text-orange-800' },
   ];
+
+  const customCategoryItems = customCategories.map(catId => ({
+    id: catId,
+    name: catId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    color: 'bg-gray-100 text-gray-800',
+    isCustom: true
+  }));
+
+  const allCategories = [...predefinedCategories, ...customCategoryItems];
 
   if (isLoading) {
     return (
@@ -164,7 +205,7 @@ export default function SourceManagementModal({ isOpen, onClose }: SourceManagem
           <div>
             <h3 className="text-lg font-semibold mb-3">Content Categories</h3>
             <div className="grid grid-cols-2 gap-3">
-              {categories.map((category) => {
+              {allCategories.map((category) => {
                 const isEnabled = (userPreferences as any)?.categories?.includes(category.id) ?? true;
                 return (
                   <Card key={category.id} className={`cursor-pointer transition-colors ${isEnabled ? 'ring-2 ring-primary' : ''}`}>
