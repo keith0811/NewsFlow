@@ -138,16 +138,38 @@ class NewsService {
   }
 
   async scheduleRefresh(): Promise<void> {
-    // This would typically use a cron job or scheduler
-    // For now, we'll just refresh immediately
-    setInterval(async () => {
-      try {
-        await this.refreshAllArticles();
-        console.log('Scheduled article refresh completed');
-      } catch (error) {
-        console.error('Scheduled article refresh failed:', error);
-      }
-    }, 3600000); // Refresh every hour
+    // Schedule daily refresh at 12:00 AM
+    const scheduleNextRefresh = () => {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0); // Set to 12:00 AM
+      
+      const timeUntilMidnight = tomorrow.getTime() - now.getTime();
+      
+      setTimeout(async () => {
+        try {
+          await this.refreshAllArticles();
+          console.log('Daily article refresh completed at 12:00 AM');
+        } catch (error) {
+          console.error('Daily article refresh failed:', error);
+        }
+        
+        // Schedule the next refresh for the following day
+        scheduleNextRefresh();
+      }, timeUntilMidnight);
+    };
+    
+    // Initial refresh and schedule
+    try {
+      await this.refreshAllArticles();
+      console.log('Initial article refresh completed');
+    } catch (error) {
+      console.error('Initial article refresh failed:', error);
+    }
+    
+    scheduleNextRefresh();
+    console.log('Daily article refresh scheduled for 12:00 AM');
   }
 }
 

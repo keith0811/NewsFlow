@@ -19,6 +19,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize news sources and fetch initial articles
   await newsService.initializeDefaultSources();
   
+  // Start daily article refresh schedule
+  await newsService.scheduleRefresh();
+  
   // Fetch initial articles in the background
   newsService.refreshAllArticles().catch(error => {
     console.log('Initial article fetch failed:', error.message);
