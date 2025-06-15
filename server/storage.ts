@@ -147,7 +147,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
 
     return await query;
@@ -242,20 +242,22 @@ export class DatabaseStorage implements IStorage {
 
   // Notes
   async getUserNotes(userId: string, articleId?: number): Promise<UserNote[]> {
-    let query = db
+    if (articleId) {
+      return await db
+        .select()
+        .from(userNotes)
+        .where(and(
+          eq(userNotes.userId, userId),
+          eq(userNotes.articleId, articleId)
+        ))
+        .orderBy(desc(userNotes.createdAt));
+    }
+
+    return await db
       .select()
       .from(userNotes)
       .where(eq(userNotes.userId, userId))
       .orderBy(desc(userNotes.createdAt));
-
-    if (articleId) {
-      query = query.where(and(
-        eq(userNotes.userId, userId),
-        eq(userNotes.articleId, articleId)
-      ));
-    }
-
-    return await query;
   }
 
   async createUserNote(note: InsertUserNote): Promise<UserNote> {

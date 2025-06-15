@@ -16,8 +16,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Initialize news sources
+  // Initialize news sources and fetch initial articles
   await newsService.initializeDefaultSources();
+  
+  // Fetch initial articles in the background
+  newsService.refreshAllArticles().catch(error => {
+    console.log('Initial article fetch failed:', error.message);
+  });
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
