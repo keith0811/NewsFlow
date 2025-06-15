@@ -10,6 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Newspaper, Search, Bell, User, Settings, LogOut } from "lucide-react";
 
 export default function Header() {
@@ -62,10 +67,40 @@ export default function Header() {
             </Button>
             
             {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-4 w-4" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full"></span>
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-4 w-4" />
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full"></span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-4" align="end">
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm text-gray-900">Notifications</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-start space-x-3 p-2 rounded-lg bg-blue-50">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-900">New articles available</p>
+                        <p className="text-xs text-gray-500">Fresh content from your favorite sources</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3 p-2 rounded-lg">
+                      <div className="w-2 h-2 bg-gray-300 rounded-full mt-2"></div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-900">Daily reading goal</p>
+                        <p className="text-xs text-gray-500">Keep up your reading streak!</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-gray-200">
+                    <Button variant="ghost" className="w-full text-xs text-gray-500 hover:text-gray-700">
+                      View all notifications
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
 
             {/* User Profile */}
             <DropdownMenu>
