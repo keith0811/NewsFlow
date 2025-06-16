@@ -113,6 +113,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- June 16, 2025: Complete MySQL conversion implemented
+  - Converted PostgreSQL schema to MySQL-compatible format using mysqlTable and MySQL data types
+  - Created MySQL-specific database connection with mysql2 driver
+  - Updated all table definitions: sessions, users, userPreferences, newsSources, articles, userArticles, userNotes, readingHistory
+  - Adapted storage layer for MySQL syntax (removed PostgreSQL-specific features like RETURNING, onConflictDoUpdate)
+  - Created MySQL-compatible storage implementation with proper upsert patterns
+  - Updated housekeeping service for MySQL compatibility
+  - Maintained all NewsFlow features while adapting to MySQL constraints
+
 - June 15, 2025: NewsFlow application completed and ready for production deployment
   - Replaced failing Reuters feeds with working Business Insider, CNBC Business, and Yahoo Finance sources
   - Fixed Business and Markets categories - now populated with real articles
