@@ -1,5 +1,5 @@
 import Parser from 'rss-parser';
-import { storage } from '../storage-mysql';
+import { storage } from '../storage';
 import { type InsertNewsSource, type InsertArticle } from '@shared/schema';
 
 interface RSSItem {

@@ -10,7 +10,10 @@ const mysqlConfig = {
   password: process.env.MYSQL_PASSWORD || '',
   database: process.env.MYSQL_DATABASE || 'newsflow',
   multipleStatements: true,
-  ssl: process.env.MYSQL_SSL === 'true' ? { rejectUnauthorized: false } : false
+  ssl: process.env.MYSQL_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+  connectTimeout: 60000,
+  acquireTimeout: 60000,
+  timeout: 60000
 };
 
 // Create MySQL connection pool
