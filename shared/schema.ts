@@ -82,14 +82,14 @@ export const articles = mysqlTable("articles", {
 });
 
 // User article interactions
-export const userArticles = pgTable("user_articles", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  articleId: integer("article_id").notNull().references(() => articles.id),
+export const userArticles = mysqlTable("user_articles", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
+  articleId: int("article_id").notNull().references(() => articles.id),
   isRead: boolean("is_read").default(false),
   isBookmarked: boolean("is_bookmarked").default(false),
   readAt: timestamp("read_at"),
-  readingProgress: real("reading_progress").default(0),
+  readingProgress: float("reading_progress").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
@@ -97,21 +97,21 @@ export const userArticles = pgTable("user_articles", {
 }));
 
 // User notes on articles
-export const userNotes = pgTable("user_notes", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  articleId: integer("article_id").notNull().references(() => articles.id),
+export const userNotes = mysqlTable("user_notes", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
+  articleId: int("article_id").notNull().references(() => articles.id),
   content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Reading history for analytics
-export const readingHistory = pgTable("reading_history", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  articleId: integer("article_id").notNull().references(() => articles.id),
-  readingTime: integer("reading_time").notNull(),
+export const readingHistory = mysqlTable("reading_history", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
+  articleId: int("article_id").notNull().references(() => articles.id),
+  readingTime: int("reading_time").notNull(),
   date: timestamp("date").defaultNow(),
 });
 

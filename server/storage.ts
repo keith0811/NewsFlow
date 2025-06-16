@@ -21,7 +21,7 @@ import {
   type ReadingHistory,
   type InsertReadingHistory,
 } from "@shared/schema";
-import { db } from "./db";
+import { db } from "./db-mysql";
 import { eq, desc, and, or, inArray, sql, count } from "drizzle-orm";
 
 export interface IStorage {

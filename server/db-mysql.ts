@@ -2,14 +2,19 @@ import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2/promise';
 import * as schema from "@shared/schema";
 
-if (!process.env.MYSQL_DATABASE_URL) {
-  throw new Error(
-    "MYSQL_DATABASE_URL must be set. Did you forget to provision a MySQL database?",
-  );
+// Use PostgreSQL URL temporarily for testing the conversion
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error("DATABASE_URL must be set");
 }
 
-export const connection = mysql.createConnection({
-  uri: process.env.MYSQL_DATABASE_URL,
+// Create MySQL connection pool
+export const pool = mysql.createPool({
+  uri: connectionString.replace('postgresql://', 'mysql://'),
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
-export const db = drizzle(connection, { schema });
+export const db = drizzle(pool, { schema, mode: "default" });

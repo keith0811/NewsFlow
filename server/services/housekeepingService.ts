@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../db-mysql";
 import { articles, userArticles, userNotes, readingHistory } from "@shared/schema";
 import { lt, and, notInArray } from "drizzle-orm";
 
