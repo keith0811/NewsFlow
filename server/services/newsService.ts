@@ -16,16 +16,7 @@ class NewsService {
   private parser: Parser<{}, RSSItem>;
 
   constructor() {
-    this.parser = new Parser({
-      customFields: {
-        item: [
-          'content:encoded',
-          'content',
-          'description',
-          'summary'
-        ]
-      }
-    });
+    this.parser = new Parser();
   }
 
   async initializeDefaultSources(): Promise<void> {
@@ -33,6 +24,7 @@ class NewsService {
       {
         name: 'techcrunch',
         displayName: 'TechCrunch',
+        url: 'https://techcrunch.com',
         rssUrl: 'https://techcrunch.com/feed/',
         category: 'technology',
         isActive: true,
@@ -40,6 +32,7 @@ class NewsService {
       {
         name: 'ai_news',
         displayName: 'AI News',
+        url: 'https://www.artificialintelligence-news.com',
         rssUrl: 'https://www.artificialintelligence-news.com/feed/',
         category: 'ai',
         isActive: true,
@@ -47,6 +40,7 @@ class NewsService {
       {
         name: 'business_insider',
         displayName: 'Business Insider',
+        url: 'https://www.businessinsider.com',
         rssUrl: 'https://feeds.businessinsider.com/custom/all',
         category: 'business',
         isActive: true,
@@ -54,6 +48,7 @@ class NewsService {
       {
         name: 'yahoo_finance',
         displayName: 'Yahoo Finance',
+        url: 'https://finance.yahoo.com',
         rssUrl: 'https://finance.yahoo.com/rss/topstories',
         category: 'markets',
         isActive: true,
@@ -61,6 +56,7 @@ class NewsService {
       {
         name: 'cnbc_business',
         displayName: 'CNBC Business',
+        url: 'https://www.cnbc.com',
         rssUrl: 'https://www.cnbc.com/id/10001147/device/rss/rss.html',
         category: 'business',
         isActive: true,

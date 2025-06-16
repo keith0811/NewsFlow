@@ -1,53 +1,52 @@
 import {
-  pgTable,
+  mysqlTable,
   text,
   varchar,
   timestamp,
-  jsonb,
+  json,
   index,
-  serial,
+  int,
   boolean,
-  integer,
   unique,
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Session storage table (mandatory for Replit Auth)
-export const sessions = pgTable(
+export const sessions = mysqlTable(
   "sessions",
   {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
+    sid: varchar("sid", { length: 255 }).primaryKey(),
+    sess: json("sess").notNull(),
     expire: timestamp("expire").notNull(),
   },
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
 // User storage table (mandatory for Replit Auth)
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
+export const users = mysqlTable("users", {
+  id: varchar("id", { length: 255 }).primaryKey().notNull(),
+  email: varchar("email", { length: 255 }).unique(),
+  firstName: varchar("first_name", { length: 255 }),
+  lastName: varchar("last_name", { length: 255 }),
+  profileImageUrl: varchar("profile_image_url", { length: 500 }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const userPreferences = pgTable("user_preferences", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull(),
-  categories: text("categories").array(),
-  sources: text("sources").array(),
-  dailyReadingGoal: integer("daily_reading_goal").default(5),
+export const userPreferences = mysqlTable("user_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  categories: json("categories").$type<string[]>(),
+  sources: json("sources").$type<string[]>(),
+  dailyReadingGoal: int("daily_reading_goal").default(5),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const newsSources = pgTable("news_sources", {
-  id: serial("id").primaryKey(),
+export const newsSources = mysqlTable("news_sources", {
+  id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
   displayName: varchar("display_name", { length: 100 }).notNull(),
   url: varchar("url", { length: 500 }).notNull(),
@@ -57,52 +56,52 @@ export const newsSources = pgTable("news_sources", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const articles = pgTable("articles", {
-  id: serial("id").primaryKey(),
+export const articles = mysqlTable("articles", {
+  id: int("id").autoincrement().primaryKey(),
   title: varchar("title", { length: 500 }).notNull(),
   content: text("content").notNull(),
   summary: text("summary"),
   aiSummary: text("ai_summary"),
   aiEnhancement: text("ai_enhancement"),
-  aiKeyPoints: text("ai_key_points").array(),
+  aiKeyPoints: json("ai_key_points").$type<string[]>(),
   aiSentiment: varchar("ai_sentiment", { length: 20 }),
   url: varchar("url", { length: 1000 }).notNull().unique(),
   imageUrl: varchar("image_url", { length: 1000 }),
-  sourceId: integer("source_id").notNull(),
+  sourceId: int("source_id").notNull(),
   category: varchar("category", { length: 50 }).notNull(),
   publishedAt: timestamp("published_at").notNull(),
-  readingTime: integer("reading_time"),
+  readingTime: int("reading_time"),
   isProcessed: boolean("is_processed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const userArticles = pgTable("user_articles", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull(),
-  articleId: integer("article_id").notNull(),
+export const userArticles = mysqlTable("user_articles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  articleId: int("article_id").notNull(),
   isRead: boolean("is_read").default(false),
   isBookmarked: boolean("is_bookmarked").default(false),
   readAt: timestamp("read_at"),
-  readingTime: integer("reading_time"),
+  readingTime: int("reading_time"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const userNotes = pgTable("user_notes", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull(),
-  articleId: integer("article_id").notNull(),
+export const userNotes = mysqlTable("user_notes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  articleId: int("article_id").notNull(),
   content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const readingHistory = pgTable("reading_history", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull(),
-  articleId: integer("article_id").notNull(),
+export const readingHistory = mysqlTable("reading_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  articleId: int("article_id").notNull(),
   date: timestamp("date").defaultNow(),
-  readingTime: integer("reading_time"),
+  readingTime: int("reading_time"),
 });
 
 // Relations
