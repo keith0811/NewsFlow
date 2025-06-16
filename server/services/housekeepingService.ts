@@ -26,17 +26,14 @@ class HousekeepingService {
       const oldArticleIds = oldArticles.map(a => a.id);
       console.log(`Found ${oldArticleIds.length} articles older than ${this.ARTICLE_RETENTION_DAYS} days`);
 
-      // Step 2: Get article IDs that users have read (preserve reading history)
+      // Step 2: Get article IDs that users have interacted with (preserve reading history)
       const readArticleIds = await db
         .select({ articleId: userArticles.articleId })
-        .from(userArticles)
-        .where(and(
-          notInArray(userArticles.articleId, oldArticleIds),
-        ));
+        .from(userArticles);
 
       const preserveIds = readArticleIds.map(r => r.articleId);
 
-      // Step 3: Filter out articles we want to preserve
+      // Step 3: Filter out articles we want to preserve (keep articles with user interactions)
       const articlesToDelete = oldArticleIds.filter(id => !preserveIds.includes(id));
 
       if (articlesToDelete.length === 0) {
