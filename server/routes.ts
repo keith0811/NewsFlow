@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage-mysql";
+import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { housekeepingService } from "./services/housekeepingService-mysql";
+import { housekeepingService } from "./services/housekeepingService";
 import { newsService } from "./services/newsService";
 import { aiService } from "./services/aiService";
 import {
