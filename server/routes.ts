@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { housekeepingService } from "./services/housekeepingService";
 import { newsService } from "./services/newsService";
 import { aiService } from "./services/aiService";
 import {
@@ -266,6 +267,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error refreshing articles:", error);
       res.status(500).json({ message: "Failed to refresh articles" });
+    }
+  });
+
+  // Database housekeeping endpoints
+  app.get('/api/admin/cleanup-stats', isAuthenticated, async (req, res) => {
+    try {
+      const stats = await housekeepingService.getCleanupStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Error getting cleanup stats:', error);
+      res.status(500).json({ message: 'Failed to get cleanup stats' });
+    }
+  });
+
+  app.post('/api/admin/cleanup', isAuthenticated, async (req, res) => {
+    try {
+      await housekeepingService.performDailyCleanup();
+      res.json({ message: 'Database cleanup completed successfully' });
+    } catch (error) {
+      console.error('Error performing cleanup:', error);
+      res.status(500).json({ message: 'Failed to perform cleanup' });
     }
   });
 

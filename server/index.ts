@@ -39,6 +39,10 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // Import and initialize housekeeping service
+  const { housekeepingService } = await import("./services/housekeepingService");
+  housekeepingService.scheduleCleanup();
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
