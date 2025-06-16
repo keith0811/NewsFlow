@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2/promise';
-import * as schema from "@shared/schema-mysql";
+import * as schema from "@shared/schema";
 
 if (!process.env.MYSQL_DATABASE_URL) {
   throw new Error(
@@ -8,11 +8,8 @@ if (!process.env.MYSQL_DATABASE_URL) {
   );
 }
 
-export const pool = mysql.createPool({
+export const connection = mysql.createConnection({
   uri: process.env.MYSQL_DATABASE_URL,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
 });
 
-export const db = drizzle(pool, { schema, mode: "default" });
+export const db = drizzle(connection, { schema });

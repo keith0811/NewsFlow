@@ -1,49 +1,48 @@
 import {
-  pgTable,
+  mysqlTable,
   text,
   varchar,
   timestamp,
-  jsonb,
+  json,
   index,
-  serial,
-  integer,
+  int,
   boolean,
-  real,
+  float,
   unique,
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Session storage table (mandatory for Replit Auth)
-export const sessions = pgTable(
+export const sessions = mysqlTable(
   "sessions",
   {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
+    sid: varchar("sid", { length: 255 }).primaryKey(),
+    sess: json("sess").notNull(),
     expire: timestamp("expire").notNull(),
   },
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
 // User storage table (mandatory for Replit Auth)
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
+export const users = mysqlTable("users", {
+  id: varchar("id", { length: 255 }).primaryKey().notNull(),
+  email: varchar("email", { length: 255 }).unique(),
+  firstName: varchar("first_name", { length: 255 }),
+  lastName: varchar("last_name", { length: 255 }),
+  profileImageUrl: varchar("profile_image_url", { length: 500 }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // User preferences
-export const userPreferences = pgTable("user_preferences", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  categories: text("categories").array().default([]),
-  sources: text("sources").array().default([]),
-  dailyReadingGoal: integer("daily_reading_goal").default(15),
+export const userPreferences = mysqlTable("user_preferences", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
+  categories: json("categories").$type<string[]>().default([]),
+  sources: json("sources").$type<string[]>().default([]),
+  dailyReadingGoal: int("daily_reading_goal").default(15),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
@@ -51,33 +50,33 @@ export const userPreferences = pgTable("user_preferences", {
 }));
 
 // News sources
-export const newsSources = pgTable("news_sources", {
-  id: serial("id").primaryKey(),
-  name: varchar("name").notNull(),
-  displayName: varchar("display_name").notNull(),
-  url: text("url"),
-  rssUrl: text("rss_url").notNull(),
-  category: varchar("category").notNull(),
+export const newsSources = mysqlTable("news_sources", {
+  id: int("id").primaryKey().autoincrement(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  displayName: varchar("display_name", { length: 255 }).notNull(),
+  url: varchar("url", { length: 500 }),
+  rssUrl: varchar("rss_url", { length: 500 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Articles
-export const articles = pgTable("articles", {
-  id: serial("id").primaryKey(),
+export const articles = mysqlTable("articles", {
+  id: int("id").primaryKey().autoincrement(),
   title: text("title").notNull(),
   content: text("content").notNull(),
   summary: text("summary"),
   aiSummary: text("ai_summary"),
   aiEnhancement: text("ai_enhancement"),
-  aiKeyPoints: text("ai_key_points").array(),
-  aiSentiment: varchar("ai_sentiment"),
-  url: text("url").notNull().unique(),
-  imageUrl: text("image_url"),
-  sourceId: integer("source_id").references(() => newsSources.id),
-  category: varchar("category").notNull(),
+  aiKeyPoints: json("ai_key_points").$type<string[]>(),
+  aiSentiment: varchar("ai_sentiment", { length: 50 }),
+  url: varchar("url", { length: 500 }).notNull().unique(),
+  imageUrl: varchar("image_url", { length: 500 }),
+  sourceId: int("source_id").references(() => newsSources.id),
+  category: varchar("category", { length: 100 }).notNull(),
   publishedAt: timestamp("published_at").notNull(),
-  readingTime: integer("reading_time").default(0),
+  readingTime: int("reading_time").default(0),
   isProcessed: boolean("is_processed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
