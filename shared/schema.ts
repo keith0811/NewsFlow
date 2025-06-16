@@ -1,15 +1,15 @@
 import {
-  mysqlTable,
+  pgTable,
   text,
   varchar,
   timestamp,
-  json,
+  jsonb,
   index,
-  int,
+  serial,
   boolean,
-  float,
+  integer,
   unique,
-} from "drizzle-orm/mysql-core";
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
