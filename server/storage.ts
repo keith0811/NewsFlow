@@ -9,19 +9,19 @@ import {
   type User,
   type UpsertUser,
   type UserPreferences,
-  type InsertUserPreferences,
   type NewsSource,
-  type InsertNewsSource,
   type Article,
-  type InsertArticle,
   type UserArticle,
-  type InsertUserArticle,
   type UserNote,
-  type InsertUserNote,
   type ReadingHistory,
+  type InsertUserPreferences,
+  type InsertNewsSource,
+  type InsertArticle,
+  type InsertUserArticle,
+  type InsertUserNote,
   type InsertReadingHistory,
 } from "@shared/schema";
-import { db } from "./db";
+import { db } from "./db-mysql";
 import { eq, desc, and, or, inArray, sql, count } from "drizzle-orm";
 
 export interface IStorage {
@@ -72,18 +72,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
+    const existing = await this.getUser(userData.id);
+    
+    if (existing) {
+      await db
+        .update(users)
+        .set({
           ...userData,
           updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
+        })
+        .where(eq(users.id, userData.id));
+      return await this.getUser(userData.id) || existing;
+    } else {
+      await db.insert(users).values(userData);
+      return await this.getUser(userData.id) || userData as User;
+    }
   }
 
   // User preferences
@@ -96,18 +99,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences> {
-    const [result] = await db
-      .insert(userPreferences)
-      .values(preferences)
-      .onConflictDoUpdate({
-        target: [userPreferences.userId],
-        set: {
+    const existing = await this.getUserPreferences(preferences.userId);
+    
+    if (existing) {
+      await db
+        .update(userPreferences)
+        .set({
           ...preferences,
           updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return result;
+        })
+        .where(eq(userPreferences.userId, preferences.userId));
+      return await this.getUserPreferences(preferences.userId) || existing;
+    } else {
+      await db.insert(userPreferences).values(preferences);
+      return await this.getUserPreferences(preferences.userId) || preferences as UserPreferences;
+    }
   }
 
   // News sources
@@ -120,107 +126,147 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNewsSource(source: InsertNewsSource): Promise<NewsSource> {
-    const [result] = await db
-      .insert(newsSources)
-      .values(source)
-      .returning();
-    return result;
+    const result = await db.insert(newsSources).values(source);
+    const insertId = result.insertId;
+    const [created] = await db.select().from(newsSources).where(eq(newsSources.id, insertId));
+    return created;
   }
 
   // Articles
   async getArticles(limit = 20, offset = 0, category?: string, sourceIds?: number[]): Promise<any[]> {
     let query = db
-      .select()
+      .select({
+        id: articles.id,
+        title: articles.title,
+        content: articles.content,
+        summary: articles.summary,
+        aiSummary: articles.aiSummary,
+        aiEnhancement: articles.aiEnhancement,
+        aiKeyPoints: articles.aiKeyPoints,
+        aiSentiment: articles.aiSentiment,
+        url: articles.url,
+        imageUrl: articles.imageUrl,
+        sourceId: articles.sourceId,
+        category: articles.category,
+        publishedAt: articles.publishedAt,
+        readingTime: articles.readingTime,
+        isProcessed: articles.isProcessed,
+        createdAt: articles.createdAt,
+        source: {
+          id: newsSources.id,
+          name: newsSources.name,
+          displayName: newsSources.displayName,
+          url: newsSources.url,
+          category: newsSources.category,
+        }
+      })
       .from(articles)
-      .leftJoin(newsSources, eq(articles.sourceId, newsSources.id))
+      .leftJoin(newsSources, eq(articles.sourceId, newsSources.id));
+
+    let whereConditions = [];
+    
+    if (category) {
+      whereConditions.push(eq(articles.category, category));
+    }
+
+    if (sourceIds && sourceIds.length > 0) {
+      whereConditions.push(inArray(articles.sourceId, sourceIds));
+    }
+
+    if (whereConditions.length > 0) {
+      query = query.where(and(...whereConditions));
+    }
+
+    return query
       .orderBy(desc(articles.publishedAt))
       .limit(limit)
       .offset(offset);
-
-    const conditions = [];
-    
-    if (category && category !== 'all') {
-      conditions.push(eq(articles.category, category));
-    }
-    
-    if (sourceIds && sourceIds.length > 0) {
-      conditions.push(inArray(articles.sourceId, sourceIds));
-    }
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as any;
-    }
-
-    const results = await query;
-    
-    // Transform the results to include source information
-    return results.map((row: any) => {
-      // Handle the joined query structure
-      const article = row.articles || row;
-      const source = row.news_sources || null;
-      
-      return {
-        ...article,
-        source: source
-      };
-    });
   }
 
   async getArticleById(id: number): Promise<Article | undefined> {
-    const [article] = await db
-      .select()
-      .from(articles)
-      .where(eq(articles.id, id));
+    const [article] = await db.select().from(articles).where(eq(articles.id, id));
     return article;
   }
 
   async createArticle(article: InsertArticle): Promise<Article> {
-    const [result] = await db
-      .insert(articles)
-      .values(article)
-      .returning();
-    return result;
+    const result = await db.insert(articles).values(article);
+    const insertId = result.insertId;
+    const [created] = await db.select().from(articles).where(eq(articles.id, insertId));
+    return created;
   }
 
   async updateArticle(id: number, updates: Partial<InsertArticle>): Promise<Article> {
-    const [result] = await db
-      .update(articles)
-      .set(updates)
-      .where(eq(articles.id, id))
-      .returning();
-    return result;
+    await db.update(articles).set(updates).where(eq(articles.id, id));
+    const [updated] = await db.select().from(articles).where(eq(articles.id, id));
+    return updated;
   }
 
   // User articles
   async getUserArticle(userId: string, articleId: number): Promise<UserArticle | undefined> {
-    const [result] = await db
+    const [userArticle] = await db
       .select()
       .from(userArticles)
       .where(and(
         eq(userArticles.userId, userId),
         eq(userArticles.articleId, articleId)
       ));
-    return result;
+    return userArticle;
   }
 
   async upsertUserArticle(userArticle: InsertUserArticle): Promise<UserArticle> {
-    const [result] = await db
-      .insert(userArticles)
-      .values(userArticle)
-      .onConflictDoUpdate({
-        target: [userArticles.userId, userArticles.articleId],
-        set: {
+    const existing = await this.getUserArticle(userArticle.userId, userArticle.articleId);
+    
+    if (existing) {
+      await db
+        .update(userArticles)
+        .set({
           ...userArticle,
           updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return result;
+        })
+        .where(and(
+          eq(userArticles.userId, userArticle.userId),
+          eq(userArticles.articleId, userArticle.articleId)
+        ));
+      return await this.getUserArticle(userArticle.userId, userArticle.articleId) || existing;
+    } else {
+      await db.insert(userArticles).values(userArticle);
+      return await this.getUserArticle(userArticle.userId, userArticle.articleId) || userArticle as UserArticle;
+    }
   }
 
   async getUserBookmarkedArticles(userId: string): Promise<(Article & { userArticle: UserArticle })[]> {
-    const results = await db
-      .select()
+    return await db
+      .select({
+        // Article fields
+        id: articles.id,
+        title: articles.title,
+        content: articles.content,
+        summary: articles.summary,
+        aiSummary: articles.aiSummary,
+        aiEnhancement: articles.aiEnhancement,
+        aiKeyPoints: articles.aiKeyPoints,
+        aiSentiment: articles.aiSentiment,
+        url: articles.url,
+        imageUrl: articles.imageUrl,
+        sourceId: articles.sourceId,
+        category: articles.category,
+        publishedAt: articles.publishedAt,
+        readingTime: articles.readingTime,
+        isProcessed: articles.isProcessed,
+        createdAt: articles.createdAt,
+        // UserArticle fields
+        userArticle: {
+          id: userArticles.id,
+          userId: userArticles.userId,
+          articleId: userArticles.articleId,
+          isRead: userArticles.isRead,
+          isBookmarked: userArticles.isBookmarked,
+          readAt: userArticles.readAt,
+          readingTime: userArticles.readingTime,
+          createdAt: userArticles.createdAt,
+          updatedAt: userArticles.updatedAt,
+        }
+      })
       .from(articles)
       .innerJoin(userArticles, eq(articles.id, userArticles.articleId))
       .where(and(
@@ -228,16 +274,41 @@ export class DatabaseStorage implements IStorage {
         eq(userArticles.isBookmarked, true)
       ))
       .orderBy(desc(userArticles.updatedAt));
-
-    return results.map(result => ({
-      ...result.articles,
-      userArticle: result.user_articles,
-    }));
   }
 
   async getUserReadArticles(userId: string, limit = 50): Promise<(Article & { userArticle: UserArticle })[]> {
-    const results = await db
-      .select()
+    return await db
+      .select({
+        // Article fields
+        id: articles.id,
+        title: articles.title,
+        content: articles.content,
+        summary: articles.summary,
+        aiSummary: articles.aiSummary,
+        aiEnhancement: articles.aiEnhancement,
+        aiKeyPoints: articles.aiKeyPoints,
+        aiSentiment: articles.aiSentiment,
+        url: articles.url,
+        imageUrl: articles.imageUrl,
+        sourceId: articles.sourceId,
+        category: articles.category,
+        publishedAt: articles.publishedAt,
+        readingTime: articles.readingTime,
+        isProcessed: articles.isProcessed,
+        createdAt: articles.createdAt,
+        // UserArticle fields
+        userArticle: {
+          id: userArticles.id,
+          userId: userArticles.userId,
+          articleId: userArticles.articleId,
+          isRead: userArticles.isRead,
+          isBookmarked: userArticles.isBookmarked,
+          readAt: userArticles.readAt,
+          readingTime: userArticles.readingTime,
+          createdAt: userArticles.createdAt,
+          updatedAt: userArticles.updatedAt,
+        }
+      })
       .from(articles)
       .innerJoin(userArticles, eq(articles.id, userArticles.articleId))
       .where(and(
@@ -246,63 +317,54 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(desc(userArticles.readAt))
       .limit(limit);
-
-    return results.map(result => ({
-      ...result.articles,
-      userArticle: result.user_articles,
-    }));
   }
 
   // Notes
   async getUserNotes(userId: string, articleId?: number): Promise<UserNote[]> {
-    if (articleId) {
-      return await db
-        .select()
-        .from(userNotes)
-        .where(and(
-          eq(userNotes.userId, userId),
-          eq(userNotes.articleId, articleId)
-        ))
-        .orderBy(desc(userNotes.createdAt));
-    }
-
-    return await db
+    let query = db
       .select()
       .from(userNotes)
-      .where(eq(userNotes.userId, userId))
-      .orderBy(desc(userNotes.createdAt));
+      .where(eq(userNotes.userId, userId));
+
+    if (articleId) {
+      query = query.where(and(
+        eq(userNotes.userId, userId),
+        eq(userNotes.articleId, articleId)
+      ));
+    }
+
+    return query.orderBy(desc(userNotes.createdAt));
   }
 
   async createUserNote(note: InsertUserNote): Promise<UserNote> {
-    const [result] = await db
-      .insert(userNotes)
-      .values(note)
-      .returning();
-    return result;
+    const result = await db.insert(userNotes).values(note);
+    const insertId = result.insertId;
+    const [created] = await db.select().from(userNotes).where(eq(userNotes.id, insertId));
+    return created;
   }
 
   async updateUserNote(id: number, content: string): Promise<UserNote> {
-    const [result] = await db
+    await db
       .update(userNotes)
-      .set({ content, updatedAt: new Date() })
-      .where(eq(userNotes.id, id))
-      .returning();
-    return result;
+      .set({ 
+        content,
+        updatedAt: new Date()
+      })
+      .where(eq(userNotes.id, id));
+    const [updated] = await db.select().from(userNotes).where(eq(userNotes.id, id));
+    return updated;
   }
 
   async deleteUserNote(id: number): Promise<void> {
-    await db
-      .delete(userNotes)
-      .where(eq(userNotes.id, id));
+    await db.delete(userNotes).where(eq(userNotes.id, id));
   }
 
   // Reading history and analytics
   async createReadingHistory(history: InsertReadingHistory): Promise<ReadingHistory> {
-    const [result] = await db
-      .insert(readingHistory)
-      .values(history)
-      .returning();
-    return result;
+    const result = await db.insert(readingHistory).values(history);
+    const insertId = result.insertId;
+    const [created] = await db.select().from(readingHistory).where(eq(readingHistory.id, insertId));
+    return created;
   }
 
   async getUserReadingStats(userId: string, days = 30): Promise<{
@@ -313,11 +375,11 @@ export class DatabaseStorage implements IStorage {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    // Get articles read and total reading time
-    const [stats] = await db
+    // Get articles read in the period
+    const readArticles = await db
       .select({
-        articlesRead: count(readingHistory.id),
-        totalReadingTime: sql<number>`COALESCE(SUM(${readingHistory.readingTime}), 0)`,
+        count: count(),
+        totalTime: sql<number>`COALESCE(SUM(${readingHistory.readingTime}), 0)`
       })
       .from(readingHistory)
       .where(and(
@@ -325,24 +387,25 @@ export class DatabaseStorage implements IStorage {
         sql`${readingHistory.date} >= ${startDate}`
       ));
 
-    // Calculate reading streak (simplified)
+    // Calculate streak (simplified - consecutive days with reading)
     const recentDays = await db
       .select({
         date: sql<string>`DATE(${readingHistory.date})`,
+        count: count()
       })
       .from(readingHistory)
       .where(eq(readingHistory.userId, userId))
       .groupBy(sql`DATE(${readingHistory.date})`)
-      .orderBy(desc(sql`DATE(${readingHistory.date})`))
+      .orderBy(sql`DATE(${readingHistory.date}) DESC`)
       .limit(30);
 
     let streak = 0;
     const today = new Date().toISOString().split('T')[0];
     let currentDate = new Date();
-
+    
     for (const day of recentDays) {
       const dayStr = currentDate.toISOString().split('T')[0];
-      if (recentDays.some(d => d.date === dayStr)) {
+      if (day.date === dayStr && day.count > 0) {
         streak++;
         currentDate.setDate(currentDate.getDate() - 1);
       } else {
@@ -351,9 +414,9 @@ export class DatabaseStorage implements IStorage {
     }
 
     return {
-      articlesRead: stats.articlesRead,
-      totalReadingTime: stats.totalReadingTime,
-      streak,
+      articlesRead: readArticles[0]?.count || 0,
+      totalReadingTime: readArticles[0]?.totalTime || 0,
+      streak
     };
   }
 }

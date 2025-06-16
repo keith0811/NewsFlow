@@ -1,103 +1,113 @@
 import {
-  sqliteTable,
+  mysqlTable,
   text,
-  integer,
-  blob,
+  varchar,
+  timestamp,
+  json,
+  int,
+  boolean,
   index,
-} from "drizzle-orm/sqlite-core";
+  primaryKey,
+} from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Session storage table (mandatory for Replit Auth)
-export const sessions = sqliteTable(
+// Session storage table for MySQL
+export const sessions = mysqlTable(
   "sessions",
   {
-    sid: text("sid").primaryKey(),
-    sess: text("sess").notNull(),
-    expire: integer("expire", { mode: 'timestamp' }).notNull(),
+    sid: varchar("sid", { length: 255 }).primaryKey(),
+    sess: json("sess").notNull(),
+    expire: timestamp("expire").notNull(),
   },
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table (mandatory for Replit Auth)
-export const users = sqliteTable("users", {
-  id: text("id").primaryKey().notNull(),
-  email: text("email").unique(),
-  firstName: text("first_name"),
-  lastName: text("last_name"),
-  profileImageUrl: text("profile_image_url"),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+// User storage table for MySQL
+export const users = mysqlTable("users", {
+  id: varchar("id", { length: 255 }).primaryKey().notNull(),
+  email: varchar("email", { length: 255 }).unique(),
+  firstName: varchar("first_name", { length: 255 }),
+  lastName: varchar("last_name", { length: 255 }),
+  profileImageUrl: varchar("profile_image_url", { length: 500 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const userPreferences = sqliteTable("user_preferences", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  userId: text("user_id").notNull(),
-  categories: text("categories", { mode: 'json' }).$type<string[]>(),
-  sources: text("sources", { mode: 'json' }).$type<string[]>(),
-  dailyReadingGoal: integer("daily_reading_goal").default(5),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+// User preferences table
+export const userPreferences = mysqlTable("user_preferences", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  categories: json("categories"),
+  sources: json("sources"),
+  dailyReadingGoal: int("daily_reading_goal").default(15),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const newsSources = sqliteTable("news_sources", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull().unique(),
-  displayName: text("display_name").notNull(),
-  url: text("url").notNull(),
-  rssUrl: text("rss_url").notNull(),
-  category: text("category").notNull(),
-  isActive: integer("is_active", { mode: 'boolean' }).default(true),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+// News sources table
+export const newsSources = mysqlTable("news_sources", {
+  id: int("id").primaryKey().autoincrement(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  displayName: varchar("display_name", { length: 255 }).notNull(),
+  url: varchar("url", { length: 500 }).notNull(),
+  rssUrl: varchar("rss_url", { length: 500 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const articles = sqliteTable("articles", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  title: text("title").notNull(),
+// Articles table
+export const articles = mysqlTable("articles", {
+  id: int("id").primaryKey().autoincrement(),
+  title: varchar("title", { length: 500 }).notNull(),
   content: text("content").notNull(),
   summary: text("summary"),
   aiSummary: text("ai_summary"),
   aiEnhancement: text("ai_enhancement"),
-  aiKeyPoints: text("ai_key_points", { mode: 'json' }).$type<string[]>(),
-  aiSentiment: text("ai_sentiment"),
-  url: text("url").notNull().unique(),
-  imageUrl: text("image_url"),
-  sourceId: integer("source_id").notNull(),
-  category: text("category").notNull(),
-  publishedAt: integer("published_at", { mode: 'timestamp' }).notNull(),
-  readingTime: integer("reading_time"),
-  isProcessed: integer("is_processed", { mode: 'boolean' }).default(false),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  aiKeyPoints: json("ai_key_points"),
+  aiSentiment: varchar("ai_sentiment", { length: 50 }),
+  url: varchar("url", { length: 500 }).notNull().unique(),
+  imageUrl: varchar("image_url", { length: 500 }),
+  sourceId: int("source_id").notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  publishedAt: timestamp("published_at").notNull(),
+  readingTime: int("reading_time"),
+  isProcessed: boolean("is_processed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const userArticles = sqliteTable("user_articles", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  userId: text("user_id").notNull(),
-  articleId: integer("article_id").notNull(),
-  isRead: integer("is_read", { mode: 'boolean' }).default(false),
-  isBookmarked: integer("is_bookmarked", { mode: 'boolean' }).default(false),
-  readAt: integer("read_at", { mode: 'timestamp' }),
-  readingTime: integer("reading_time"),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+// User articles table (for bookmarks and reading status)
+export const userArticles = mysqlTable("user_articles", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  articleId: int("article_id").notNull(),
+  isRead: boolean("is_read").default(false),
+  isBookmarked: boolean("is_bookmarked").default(false),
+  readAt: timestamp("read_at"),
+  readingTime: int("reading_time"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const userNotes = sqliteTable("user_notes", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  userId: text("user_id").notNull(),
-  articleId: integer("article_id").notNull(),
+// User notes table
+export const userNotes = mysqlTable("user_notes", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  articleId: int("article_id").notNull(),
   content: text("content").notNull(),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const readingHistory = sqliteTable("reading_history", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  userId: text("user_id").notNull(),
-  articleId: integer("article_id").notNull(),
-  date: integer("date", { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  readingTime: integer("reading_time"),
+// Reading history table
+export const readingHistory = mysqlTable("reading_history", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  articleId: int("article_id").notNull(),
+  date: timestamp("date").defaultNow(),
+  readingTime: int("reading_time"),
 });
 
 // Relations
