@@ -1,21 +1,19 @@
 import { drizzle } from 'drizzle-orm/mysql2';
-import mysql from 'mysql2';
+import mysql from 'mysql2/promise';
 import * as schema from "@shared/schema";
 
-// Use existing PostgreSQL connection for now (we'll adapt the queries)
-const connectionString = process.env.DATABASE_URL;
+// MySQL connection configuration
+const mysqlConfig = {
+  host: process.env.MYSQL_HOST || 'localhost',
+  port: parseInt(process.env.MYSQL_PORT || '3306'),
+  user: process.env.MYSQL_USER || 'root',
+  password: process.env.MYSQL_PASSWORD || '',
+  database: process.env.MYSQL_DATABASE || 'newsflow',
+  multipleStatements: true,
+  ssl: process.env.MYSQL_SSL === 'true' ? { rejectUnauthorized: false } : false
+};
 
-if (!connectionString) {
-  throw new Error("DATABASE_URL must be set");
-}
+// Create MySQL connection pool
+export const connection = mysql.createPool(mysqlConfig);
 
-// Create MySQL connection using the existing database URL
-export const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root', 
-  password: '',
-  database: 'newsflow',
-  multipleStatements: true
-});
-
-export const db = drizzle(connection, { schema });
+export const db = drizzle(connection, { schema, mode: "default" });

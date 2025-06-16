@@ -1,15 +1,14 @@
 import {
-  pgTable,
+  mysqlTable,
   text,
   varchar,
   timestamp,
-  jsonb,
+  json,
   index,
-  serial,
+  int,
   boolean,
-  integer,
   unique,
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -36,90 +35,83 @@ export const users = mysqlTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// User preferences
 export const userPreferences = mysqlTable("user_preferences", {
-  id: int("id").primaryKey().autoincrement(),
-  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
-  categories: json("categories").$type<string[]>().default([]),
-  sources: json("sources").$type<string[]>().default([]),
-  dailyReadingGoal: int("daily_reading_goal").default(15),
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  categories: json("categories").$type<string[]>(),
+  sources: json("sources").$type<string[]>(),
+  dailyReadingGoal: int("daily_reading_goal").default(5),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  uniqueUserId: unique().on(table.userId),
-}));
+});
 
-// News sources
 export const newsSources = mysqlTable("news_sources", {
-  id: int("id").primaryKey().autoincrement(),
-  name: varchar("name", { length: 255 }).notNull().unique(),
-  displayName: varchar("display_name", { length: 255 }).notNull(),
-  url: varchar("url", { length: 500 }),
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  displayName: varchar("display_name", { length: 100 }).notNull(),
+  url: varchar("url", { length: 500 }).notNull(),
   rssUrl: varchar("rss_url", { length: 500 }).notNull(),
-  category: varchar("category", { length: 100 }).notNull(),
+  category: varchar("category", { length: 50 }).notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Articles
 export const articles = mysqlTable("articles", {
-  id: int("id").primaryKey().autoincrement(),
-  title: text("title").notNull(),
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 500 }).notNull(),
   content: text("content").notNull(),
   summary: text("summary"),
   aiSummary: text("ai_summary"),
   aiEnhancement: text("ai_enhancement"),
   aiKeyPoints: json("ai_key_points").$type<string[]>(),
-  aiSentiment: varchar("ai_sentiment", { length: 50 }),
-  url: varchar("url", { length: 500 }).notNull().unique(),
-  imageUrl: varchar("image_url", { length: 500 }),
-  sourceId: int("source_id").references(() => newsSources.id),
-  category: varchar("category", { length: 100 }).notNull(),
+  aiSentiment: varchar("ai_sentiment", { length: 20 }),
+  url: varchar("url", { length: 1000 }).notNull().unique(),
+  imageUrl: varchar("image_url", { length: 1000 }),
+  sourceId: int("source_id").notNull(),
+  category: varchar("category", { length: 50 }).notNull(),
   publishedAt: timestamp("published_at").notNull(),
-  readingTime: int("reading_time").default(0),
+  readingTime: int("reading_time"),
   isProcessed: boolean("is_processed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// User article interactions
 export const userArticles = mysqlTable("user_articles", {
-  id: int("id").primaryKey().autoincrement(),
-  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
-  articleId: int("article_id").notNull().references(() => articles.id),
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  articleId: int("article_id").notNull(),
   isRead: boolean("is_read").default(false),
   isBookmarked: boolean("is_bookmarked").default(false),
   readAt: timestamp("read_at"),
-  readingProgress: float("reading_progress").default(0),
+  readingTime: int("reading_time"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  uniqueUserArticle: unique().on(table.userId, table.articleId),
-}));
+});
 
-// User notes on articles
 export const userNotes = mysqlTable("user_notes", {
-  id: int("id").primaryKey().autoincrement(),
-  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
-  articleId: int("article_id").notNull().references(() => articles.id),
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  articleId: int("article_id").notNull(),
   content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Reading history for analytics
 export const readingHistory = mysqlTable("reading_history", {
-  id: int("id").primaryKey().autoincrement(),
-  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
-  articleId: int("article_id").notNull().references(() => articles.id),
-  readingTime: int("reading_time").notNull(),
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  articleId: int("article_id").notNull(),
   date: timestamp("date").defaultNow(),
+  readingTime: int("reading_time"),
 });
 
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
-  preferences: one(userPreferences),
+  preferences: one(userPreferences, {
+    fields: [users.id],
+    references: [userPreferences.userId],
+  }),
   userArticles: many(userArticles),
-  notes: many(userNotes),
+  userNotes: many(userNotes),
   readingHistory: many(readingHistory),
 }));
 
@@ -136,7 +128,7 @@ export const articlesRelations = relations(articles, ({ one, many }) => ({
     references: [newsSources.id],
   }),
   userArticles: many(userArticles),
-  notes: many(userNotes),
+  userNotes: many(userNotes),
   readingHistory: many(readingHistory),
 }));
 
@@ -177,10 +169,10 @@ export const readingHistoryRelations = relations(readingHistory, ({ one }) => ({
   }),
 }));
 
-// Schema types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
+// Insert schemas
 export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({
   id: true,
   createdAt: true,
@@ -211,9 +203,9 @@ export const insertUserNoteSchema = createInsertSchema(userNotes).omit({
 
 export const insertReadingHistorySchema = createInsertSchema(readingHistory).omit({
   id: true,
-  date: true,
 });
 
+// Insert types
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type InsertNewsSource = z.infer<typeof insertNewsSourceSchema>;
 export type InsertArticle = z.infer<typeof insertArticleSchema>;
@@ -221,6 +213,7 @@ export type InsertUserArticle = z.infer<typeof insertUserArticleSchema>;
 export type InsertUserNote = z.infer<typeof insertUserNoteSchema>;
 export type InsertReadingHistory = z.infer<typeof insertReadingHistorySchema>;
 
+// Select types
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type NewsSource = typeof newsSources.$inferSelect;
 export type Article = typeof articles.$inferSelect;
