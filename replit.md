@@ -113,6 +113,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- June 19, 2025: cPanel deployment version created
+  - Built NewsFlow cPanel-compatible version with enhanced UI
+  - Created automated setup guides for cPanel hosting environment
+  - Developed ultra-lightweight version to resolve WebAssembly memory errors
+  - Added support for Apache and Nginx proxy configurations
+  - Created HTTPS setup scripts for domain news.mystimatrix.com
+  - Application ready for one-click deployment in cPanel with Node.js support
+
 - June 16, 2025: MySQL deployment version completed
   - Converted entire application to MySQL-compatible format for deployment
   - Created MySQL schema with proper data types (VARCHAR, JSON, TIMESTAMP, INT)
