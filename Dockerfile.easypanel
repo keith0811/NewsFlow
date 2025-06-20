@@ -1,0 +1,33 @@
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production --no-audit --no-fund
+
+# Copy application files
+COPY newsflow-minimal.js .
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S newsflow -u 1001
+
+# Set proper permissions
+RUN chown -R newsflow:nodejs /app
+
+# Switch to non-root user
+USER newsflow
+
+# Expose port 3000 (EasyPanel standard)
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "const http = require('http'); const options = { host: 'localhost', port: 3000, timeout: 2000 }; const request = http.request(options, (res) => { console.log('OK'); process.exit(0); }); request.on('error', () => process.exit(1)); request.end();"
+
+# Start the application
+CMD ["node", "newsflow-minimal.js"]
